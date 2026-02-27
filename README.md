@@ -1,6 +1,6 @@
 # @posthog/openclaw
 
-PostHog LLM Analytics plugin for [OpenClaw](https://github.com/openclaw/openclaw). Captures LLM generations, tool executions, and conversation traces, sending them to PostHog as structured `$ai_*` events for the [LLM Analytics dashboard](https://posthog.com/docs/ai-engineering).
+PostHog LLM Analytics plugin for [OpenClaw](https://github.com/openclaw/openclaw). Captures LLM generations, tool executions, and conversation traces, sending them to PostHog as structured `$ai_*` events for the [LLM Analytics dashboard]([https://posthog.com/docs/ai-engineering](https://posthog.com/docs/llm-analytics)).
 
 
 
