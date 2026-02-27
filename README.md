@@ -117,7 +117,46 @@ With `privacyMode: true`, no message content, prompts, or tool parameters are se
 npm install
 npm test
 npm run typecheck
+npm run lint
 ```
+
+### Local testing with OpenClaw
+
+To test the plugin locally against a running OpenClaw gateway, use `plugins.load.paths` to point OpenClaw at your local checkout:
+
+```jsonc
+// ~/.openclaw/openclaw.json
+{
+    "plugins": {
+        "load": {
+            "paths": ["/path/to/posthog-openclaw"],
+        },
+        "entries": {
+            "posthog": {
+                "enabled": true,
+                "config": {
+                    "apiKey": "phc_your_project_key",
+                    "host": "https://us.i.posthog.com",
+                    "privacyMode": false,
+                },
+            },
+        },
+    },
+    "diagnostics": { "enabled": true },
+}
+```
+
+Then start the gateway:
+
+```bash
+cd /path/to/openclaw
+pnpm install && pnpm build
+node openclaw.mjs gateway --force --allow-unconfigured
+```
+
+Open WebChat at http://127.0.0.1:18789/__openclaw__/canvas/ and send a message. Events will appear in your PostHog project under [LLM Analytics](https://us.posthog.com/llm-analytics/traces).
+
+> **Note:** The config entry key must be `"posthog"` (matching the `id` field in `openclaw.plugin.json`), not the npm package name.
 
 ## License
 
