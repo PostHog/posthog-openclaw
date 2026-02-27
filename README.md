@@ -14,23 +14,23 @@ Add to your `openclaw.json` (or `openclaw.yaml`):
 
 ```jsonc
 {
-  "plugins": {
-    "entries": {
-      "posthog": {
-        "enabled": true,
-        "config": {
-          "apiKey": "phc_your_project_key",
-          "host": "https://us.i.posthog.com",
-          "privacyMode": false,
-          "traceGrouping": "message",
-          "sessionWindowMinutes": 60,
+    "plugins": {
+        "entries": {
+            "posthog": {
+                "enabled": true,
+                "config": {
+                    "apiKey": "phc_your_project_key",
+                    "host": "https://us.i.posthog.com",
+                    "privacyMode": false,
+                    "traceGrouping": "message",
+                    "sessionWindowMinutes": 60,
+                },
+            },
         },
-      },
     },
-  },
-  "diagnostics": {
-    "enabled": true,
-  },
+    "diagnostics": {
+        "enabled": true,
+    },
 }
 ```
 

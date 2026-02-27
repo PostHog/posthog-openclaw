@@ -1,33 +1,66 @@
 {
-  "name": "@posthog/openclaw",
-  "version": "0.1.0",
-  "description": "PostHog LLM Analytics plugin for OpenClaw",
-  "type": "module",
-  "main": "./index.ts",
-  "dependencies": {
-    "posthog-node": "^5.0.0"
-  },
-  "peerDependencies": {
-    "openclaw": ">=2026.2.0"
-  },
-  "peerDependenciesMeta": {
+    "name": "@posthog/openclaw",
+    "version": "0.1.0",
+    "description": "PostHog LLM Analytics plugin for OpenClaw",
+    "type": "module",
+    "main": "./index.ts",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/PostHog/posthog-openclaw.git"
+    },
+    "author": "PostHog",
+    "keywords": [
+        "posthog",
+        "openclaw",
+        "ai",
+        "llm",
+        "observability",
+        "tracing",
+        "analytics"
+    ],
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "files": [
+        "index.ts",
+        "src",
+        "openclaw.plugin.json"
+    ],
+    "scripts": {
+        "clean": "rimraf dist",
+        "test": "vitest run",
+        "test:unit": "vitest run",
+        "test:watch": "vitest",
+        "lint": "prettier --check .",
+        "lint:fix": "prettier --write .",
+        "typecheck": "tsc --noEmit",
+        "prepublishOnly": "npm run lint && npm run test:unit && npm run typecheck"
+    },
+    "dependencies": {
+        "posthog-node": "^5.0.0"
+    },
+    "peerDependencies": {
+        "openclaw": ">=2026.2.0"
+    },
+    "peerDependenciesMeta": {
+        "openclaw": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "@types/node": "^25.3.2",
+        "prettier": "^3.5.0",
+        "typescript": "^5.8.0",
+        "vitest": "^3.0.0"
+    },
     "openclaw": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "@types/node": "^25.3.2",
-    "typescript": "^5.8.0",
-    "vitest": "^3.0.0"
-  },
-  "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
-  },
-  "openclaw": {
-    "extensions": [
-      "./index.ts"
-    ]
-  }
+        "extensions": [
+            "./index.ts"
+        ]
+    },
+    "bugs": {
+        "url": "https://github.com/PostHog/posthog-openclaw/issues"
+    },
+    "homepage": "https://github.com/PostHog/posthog-openclaw#readme"
 }
