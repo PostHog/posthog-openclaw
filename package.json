@@ -1,6 +1,6 @@
 {
     "name": "@posthog/openclaw",
-    "version": "0.1.0",
+    "version": "0.0.1",
     "description": "PostHog LLM Analytics plugin for OpenClaw",
     "type": "module",
     "main": "./index.ts",
@@ -35,6 +35,8 @@
         "lint": "prettier --check .",
         "lint:fix": "prettier --write .",
         "typecheck": "tsc --noEmit",
+        "changeset": "changeset",
+        "version": "changeset version",
         "prepublishOnly": "npm run lint && npm run test:unit && npm run typecheck"
     },
     "dependencies": {
@@ -49,6 +51,7 @@
         }
     },
     "devDependencies": {
+        "@changesets/cli": "^2.29.8",
         "@types/node": "^25.3.2",
         "prettier": "^3.5.0",
         "typescript": "^5.8.0",
