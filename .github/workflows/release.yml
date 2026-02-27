@@ -83,8 +83,8 @@ jobs:
               id: releaser
               uses: actions/create-github-app-token@v2
               with:
-                  app-id: ${{ secrets.GH_APP_RELEASER_APP_ID }}
-                  private-key: ${{ secrets.GH_APP_RELEASER_PRIVATE_KEY }}
+                  app-id: ${{ secrets.GH_APP_POSTHOG_OPENCLAW_RELEASER_APP_ID }}
+                  private-key: ${{ secrets.GH_APP_POSTHOG_OPENCLAW_RELEASER_PRIVATE_KEY }}
 
             - name: Checkout repository
               uses: actions/checkout@v4
