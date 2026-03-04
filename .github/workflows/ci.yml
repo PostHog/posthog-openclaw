@@ -12,18 +12,14 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-                  cache: npm
-
-            - run: npm ci
+            - name: Setup environment
+              uses: ./.github/actions/setup
 
             - name: Typecheck
-              run: npx tsc --noEmit
+              run: pnpm typecheck
 
             - name: Lint
-              run: npx prettier --check .
+              run: pnpm lint
 
             - name: Test
-              run: npx vitest run
+              run: pnpm test
