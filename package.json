@@ -37,7 +37,7 @@
         "typecheck": "tsc --noEmit",
         "changeset": "changeset",
         "version": "changeset version",
-        "prepublishOnly": "npm run lint && npm run test:unit && npm run typecheck"
+        "prepublishOnly": "pnpm lint && pnpm test:unit && pnpm typecheck"
     },
     "dependencies": {
         "posthog-node": "^5.0.0"
@@ -65,5 +65,9 @@
     "bugs": {
         "url": "https://github.com/PostHog/posthog-openclaw/issues"
     },
-    "homepage": "https://github.com/PostHog/posthog-openclaw#readme"
+    "homepage": "https://github.com/PostHog/posthog-openclaw#readme",
+    "packageManager": "pnpm@10.29.3",
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/"
+    }
 }
