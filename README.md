@@ -1,5 +1,9 @@
 # @posthog/openclaw
 
+[![npm version](https://img.shields.io/npm/v/@posthog/openclaw)](https://www.npmjs.com/package/@posthog/openclaw)
+[![CI](https://github.com/PostHog/posthog-openclaw/actions/workflows/ci.yml/badge.svg)](https://github.com/PostHog/posthog-openclaw/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 PostHog LLM Analytics plugin for [OpenClaw](https://github.com/openclaw/openclaw). Captures LLM generations, tool executions, and conversation traces, sending them to PostHog as structured `$ai_*` events for the [LLM Analytics dashboard](https://posthog.com/docs/llm-analytics).
 
 https://github.com/user-attachments/assets/bf7ce150-becb-4df9-b78d-5660d0a3e489
@@ -116,10 +120,10 @@ With `privacyMode: true`, no message content, prompts, or tool parameters are se
 ## Development
 
 ```bash
-npm install
-npm test
-npm run typecheck
-npm run lint
+pnpm install
+pnpm test
+pnpm typecheck
+pnpm lint
 ```
 
 ### Local testing with OpenClaw
