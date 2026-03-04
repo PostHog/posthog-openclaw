@@ -122,7 +122,7 @@ jobs:
                     echo "No changes to commit"
                     echo "committed=false" >> "$GITHUB_OUTPUT"
                   else
-                    git commit -m "chore: release v${{ steps.apply-changesets.outputs.new-version }} [version bump]"
+                    git commit -m "chore: release ${{ steps.apply-changesets.outputs.new-version }} [version bump]"
                     git push origin main
                     echo "committed=true" >> "$GITHUB_OUTPUT"
                   fi
@@ -205,7 +205,7 @@ jobs:
             - name: Tag repository
               if: steps.check-package-version.outputs.is-new-version == 'true'
               run: |
-                  git tag -a "v${{ steps.check-package-version.outputs.committed-version }}" -m "v${{ steps.check-package-version.outputs.committed-version }}"
+                  git tag -a "${{ steps.check-package-version.outputs.committed-version }}" -m "${{ steps.check-package-version.outputs.committed-version }}"
 
             - name: Publish to NPM
               if: steps.check-package-version.outputs.is-new-version == 'true'
@@ -216,13 +216,26 @@ jobs:
             - name: Push tag to GitHub
               if: steps.check-package-version.outputs.is-new-version == 'true'
               run: |
-                  git push origin "v${{ steps.check-package-version.outputs.committed-version }}"
+                  git push origin "${{ steps.check-package-version.outputs.committed-version }}"
 
             - name: Create GitHub Release
               if: steps.check-package-version.outputs.is-new-version == 'true'
               env:
                   GH_TOKEN: ${{ github.token }}
-              run: gh release create "v${{ steps.check-package-version.outputs.committed-version }}" --generate-notes
+              run: |
+                  LAST_CHANGELOG_ENTRY=$(awk -v defText="see CHANGELOG.md" '/^## /{if (flag) exit; flag=1; next} flag && /^##$/{exit} flag; END{if (!flag) print defText}' CHANGELOG.md)
+                  gh api \
+                    --method POST \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    /repos/${{ github.repository }}/releases \
+                    -f tag_name="${{ steps.check-package-version.outputs.committed-version }}" \
+                    -f target_commitish='main' \
+                    -f name="${{ steps.check-package-version.outputs.committed-version }}" \
+                    -f body="$LAST_CHANGELOG_ENTRY" \
+                    -F draft=false \
+                    -F prerelease=false \
+                    -F generate_release_notes=false
 
             - name: Send failure event to PostHog
               if: ${{ failure() }}
@@ -235,7 +248,7 @@ jobs:
                         "commitSha": "${{ github.sha }}",
                         "jobStatus": "${{ job.status }}",
                         "ref": "${{ github.ref }}",
-                        "version": "v${{ steps.check-package-version.outputs.committed-version }}"
+                        "version": "${{ steps.check-package-version.outputs.committed-version }}"
                       }
 
             - name: Notify Slack - Failed
@@ -246,7 +259,7 @@ jobs:
                   slack_bot_token: ${{ secrets.SLACK_CLIENT_LIBRARIES_BOT_TOKEN }}
                   slack_channel_id: ${{ vars.SLACK_APPROVALS_CLIENT_LIBRARIES_CHANNEL_ID }}
                   thread_ts: ${{ needs.notify-approval-needed.outputs.slack_ts }}
-                  message: '❌ Failed to release `@posthog/openclaw@v${{ steps.check-package-version.outputs.committed-version }}`! <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>'
+                  message: '❌ Failed to release `@posthog/openclaw@${{ steps.check-package-version.outputs.committed-version }}`! <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>'
                   emoji_reaction: 'x'
 
     notify-released:
