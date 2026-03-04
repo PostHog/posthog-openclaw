@@ -26,10 +26,10 @@ This is an OpenClaw plugin (`@posthog/openclaw`) that captures LLM activity and 
 ### Core Flow
 
 1. **`plugin.ts`** — `registerPostHogHooks()` wires three OpenClaw hooks and one diagnostic event listener:
-   - `llm_input`: Records run state (model, provider, messages, spanId) in an in-memory `Map<runId, RunState>`. Creates/reuses trace and session IDs.
-   - `llm_output`: Correlates with `llm_input` by `runId`, calls `buildAiGeneration()`, captures `$ai_generation` via PostHog client.
-   - `after_tool_call`: Calls `buildAiSpan()`, captures `$ai_span` parented to the generation span.
-   - `message.processed` (diagnostic): Calls `buildAiTrace()`, captures `$ai_trace` for the completed message cycle.
+    - `llm_input`: Records run state (model, provider, messages, spanId) in an in-memory `Map<runId, RunState>`. Creates/reuses trace and session IDs.
+    - `llm_output`: Correlates with `llm_input` by `runId`, calls `buildAiGeneration()`, captures `$ai_generation` via PostHog client.
+    - `after_tool_call`: Calls `buildAiSpan()`, captures `$ai_span` parented to the generation span.
+    - `message.processed` (diagnostic): Calls `buildAiTrace()`, captures `$ai_trace` for the completed message cycle.
 
 2. **`events.ts`** — Pure builder functions (`buildAiGeneration`, `buildAiSpan`, `buildAiTrace`) that construct PostHog event payloads. No side effects; easy to unit test.
 
@@ -61,6 +61,7 @@ The plugin ID is `"posthog"` (from `openclaw.plugin.json`), not the npm package 
 ## Release Process
 
 Uses changesets. To release:
+
 1. Add a changeset: `pnpm changeset`
 2. Create a PR with the `release` label
 3. Merge → CI runs `changeset version` → publishes to npm via OIDC provenance → creates git tag and GitHub Release
