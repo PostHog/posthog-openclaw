@@ -6,6 +6,7 @@ import type {
 } from './openclaw-types.js'
 import type { LastAssistantInfo, RunState } from './types.js'
 import { formatInputMessages, formatOutputChoices, generateSpanId, redactForPrivacy, safeStringify } from './utils.js'
+import { VERSION } from './version.js'
 
 export type AiGenerationEvent = {
     event: '$ai_generation'
@@ -68,6 +69,7 @@ export function buildAiGeneration(
             $ai_is_error: lastAssistant.stopReason === 'error',
             $ai_error: lastAssistant.errorMessage ?? null,
             $ai_lib: 'posthog-openclaw',
+            $ai_lib_version: VERSION,
             $ai_framework: 'openclaw',
             cache_read_input_tokens: output.usage?.cacheRead ?? null,
             cache_creation_input_tokens: output.usage?.cacheWrite ?? null,
@@ -105,6 +107,7 @@ export function buildAiSpan(
             $ai_is_error: !!event.error,
             $ai_error: event.error ?? null,
             $ai_lib: 'posthog-openclaw',
+            $ai_lib_version: VERSION,
             $ai_framework: 'openclaw',
             $ai_channel: null,
             $ai_agent_id: ctx.agentId ?? null,
@@ -134,6 +137,7 @@ export function buildAiTrace(
             $ai_is_error: event.outcome === 'error',
             $ai_error: event.error ?? null,
             $ai_lib: 'posthog-openclaw',
+            $ai_lib_version: VERSION,
             $ai_framework: 'openclaw',
             $ai_channel: event.channel ?? null,
         },
