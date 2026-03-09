@@ -1,5 +1,11 @@
 # @posthog/openclaw
 
+## 0.2.0
+
+### Minor Changes
+
+- 8573663: Add $ai_lib_version property to all AI events
+
 ## 0.1.0
 
 ### Minor Changes
