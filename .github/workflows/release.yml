@@ -109,6 +109,11 @@ jobs:
                   new_version=$(node -p "require('./package.json').version")
                   echo "new-version=$new_version" >> "$GITHUB_OUTPUT"
 
+            - name: Sync version.ts
+              run: |
+                  new_version=${{ steps.apply-changesets.outputs.new-version }}
+                  sed -i "s/export const VERSION = '.*'/export const VERSION = '${new_version}'/" src/version.ts
+
             - name: Update lockfile
               run: pnpm install --no-frozen-lockfile
 
