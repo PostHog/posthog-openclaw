@@ -50,7 +50,7 @@ jobs:
         name: Notify Slack - Approval Needed
         needs: check-release-label
         if: needs.check-release-label.outputs.should-release == 'true'
-        uses: posthog/.github/.github/workflows/notify-approval-needed.yml@main
+        uses: posthog/.github/.github/workflows/notify-approval-needed.yml@dd6539b8ffc0cbb64aac209d7fcc6d3fdd7af37e # main
         with:
             slack_channel_id: ${{ vars.SLACK_APPROVALS_CLIENT_LIBRARIES_CHANNEL_ID }}
             slack_user_group_id: ${{ vars.GROUP_CLIENT_LIBRARIES_SLACK_GROUP_ID }}
@@ -72,7 +72,7 @@ jobs:
         steps:
             - name: Notify Slack - Approved
               continue-on-error: true
-              uses: posthog/.github/.github/actions/slack-thread-reply@main
+              uses: posthog/.github/.github/actions/slack-thread-reply@dd6539b8ffc0cbb64aac209d7fcc6d3fdd7af37e # main
               with:
                   slack_bot_token: ${{ secrets.SLACK_CLIENT_LIBRARIES_BOT_TOKEN }}
                   slack_channel_id: ${{ vars.SLACK_APPROVALS_CLIENT_LIBRARIES_CHANNEL_ID }}
@@ -164,7 +164,7 @@ jobs:
             - name: Notify Slack - Rejected
               if: steps.check-rejection.outputs.was_rejected == 'true'
               continue-on-error: true
-              uses: posthog/.github/.github/actions/slack-thread-reply@main
+              uses: posthog/.github/.github/actions/slack-thread-reply@dd6539b8ffc0cbb64aac209d7fcc6d3fdd7af37e # main
               with:
                   slack_bot_token: ${{ secrets.SLACK_CLIENT_LIBRARIES_BOT_TOKEN }}
                   slack_channel_id: ${{ vars.SLACK_APPROVALS_CLIENT_LIBRARIES_CHANNEL_ID }}
@@ -259,7 +259,7 @@ jobs:
             - name: Notify Slack - Failed
               continue-on-error: true
               if: ${{ failure() && needs.notify-approval-needed.outputs.slack_ts != '' }}
-              uses: posthog/.github/.github/actions/slack-thread-reply@main
+              uses: posthog/.github/.github/actions/slack-thread-reply@dd6539b8ffc0cbb64aac209d7fcc6d3fdd7af37e # main
               with:
                   slack_bot_token: ${{ secrets.SLACK_CLIENT_LIBRARIES_BOT_TOKEN }}
                   slack_channel_id: ${{ vars.SLACK_APPROVALS_CLIENT_LIBRARIES_CHANNEL_ID }}
@@ -275,7 +275,7 @@ jobs:
         steps:
             - name: Notify Slack - Released
               continue-on-error: true
-              uses: posthog/.github/.github/actions/slack-thread-reply@main
+              uses: posthog/.github/.github/actions/slack-thread-reply@dd6539b8ffc0cbb64aac209d7fcc6d3fdd7af37e # main
               with:
                   slack_bot_token: ${{ secrets.SLACK_CLIENT_LIBRARIES_BOT_TOKEN }}
                   slack_channel_id: ${{ vars.SLACK_APPROVALS_CLIENT_LIBRARIES_CHANNEL_ID }}
