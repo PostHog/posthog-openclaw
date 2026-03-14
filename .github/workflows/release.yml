@@ -110,9 +110,10 @@ jobs:
                   echo "new-version=$new_version" >> "$GITHUB_OUTPUT"
 
             - name: Sync version.ts
+              env:
+                  NEW_VERSION: ${{ steps.apply-changesets.outputs.new-version }}
               run: |
-                  new_version=${{ steps.apply-changesets.outputs.new-version }}
-                  sed -i "s/export const VERSION = '.*'/export const VERSION = '${new_version}'/" src/version.ts
+                  sed -i "s/export const VERSION = '.*'/export const VERSION = '${NEW_VERSION}'/" src/version.ts
 
             - name: Update lockfile
               run: pnpm install --no-frozen-lockfile
@@ -121,13 +122,14 @@ jobs:
               id: commit-version-bump
               env:
                   GITHUB_TOKEN: ${{ steps.releaser.outputs.token }}
+                  NEW_VERSION: ${{ steps.apply-changesets.outputs.new-version }}
               run: |
                   git add -A
                   if git diff --staged --quiet; then
                     echo "No changes to commit"
                     echo "committed=false" >> "$GITHUB_OUTPUT"
                   else
-                    git commit -m "chore: release ${{ steps.apply-changesets.outputs.new-version }} [version bump]"
+                    git commit -m "chore: release ${NEW_VERSION} [version bump]"
                     git push origin main
                     echo "committed=true" >> "$GITHUB_OUTPUT"
                   fi
@@ -209,8 +211,10 @@ jobs:
 
             - name: Tag repository
               if: steps.check-package-version.outputs.is-new-version == 'true'
+              env:
+                  COMMITTED_VERSION: ${{ steps.check-package-version.outputs.committed-version }}
               run: |
-                  git tag -a "${{ steps.check-package-version.outputs.committed-version }}" -m "${{ steps.check-package-version.outputs.committed-version }}"
+                  git tag -a "$COMMITTED_VERSION" -m "$COMMITTED_VERSION"
 
             - name: Publish to NPM
               if: steps.check-package-version.outputs.is-new-version == 'true'
@@ -220,13 +224,16 @@ jobs:
 
             - name: Push tag to GitHub
               if: steps.check-package-version.outputs.is-new-version == 'true'
+              env:
+                  COMMITTED_VERSION: ${{ steps.check-package-version.outputs.committed-version }}
               run: |
-                  git push origin "${{ steps.check-package-version.outputs.committed-version }}"
+                  git push origin "$COMMITTED_VERSION"
 
             - name: Create GitHub Release
               if: steps.check-package-version.outputs.is-new-version == 'true'
               env:
                   GH_TOKEN: ${{ github.token }}
+                  COMMITTED_VERSION: ${{ steps.check-package-version.outputs.committed-version }}
               run: |
                   LAST_CHANGELOG_ENTRY=$(awk -v defText="see CHANGELOG.md" '/^## /{if (flag) exit; flag=1; next} flag && /^##$/{exit} flag; END{if (!flag) print defText}' CHANGELOG.md)
                   gh api \
@@ -234,9 +241,9 @@ jobs:
                     -H "Accept: application/vnd.github+json" \
                     -H "X-GitHub-Api-Version: 2022-11-28" \
                     /repos/${{ github.repository }}/releases \
-                    -f tag_name="${{ steps.check-package-version.outputs.committed-version }}" \
+                    -f tag_name="$COMMITTED_VERSION" \
                     -f target_commitish='main' \
-                    -f name="${{ steps.check-package-version.outputs.committed-version }}" \
+                    -f name="$COMMITTED_VERSION" \
                     -f body="$LAST_CHANGELOG_ENTRY" \
                     -F draft=false \
                     -F prerelease=false \

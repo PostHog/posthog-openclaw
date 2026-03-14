@@ -4,7 +4,6 @@ import { buildAiGeneration, buildAiSpan, buildAiTrace } from './events.js'
 import type { PostHogPluginConfig, RunState } from './types.js'
 import { generateSpanId, generateTraceId, parseLastAssistant } from './utils.js'
 
-const DEFAULT_HOST = 'https://us.i.posthog.com'
 const STALE_RUN_MS = 5 * 60 * 1000
 
 export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPluginConfig) {
@@ -94,6 +93,12 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
             if (now - ts > STALE_RUN_MS) {
                 lastOutputAt.delete(key)
                 lastRunId.delete(key)
+                const traceId = traces.get(key)
+                if (traceId) {
+                    traceTokens.delete(traceId)
+                    traces.delete(key)
+                }
+                generationSpans.delete(key)
                 // Only evict sessionWindows if also past the session window timeout
                 const window = sessionWindows.get(key)
                 if (window && now - window.lastOutputAt > config.sessionWindowMinutes * 60_000) {
@@ -109,7 +114,7 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
         async start() {
             const { PostHog: PostHogClient } = await import('posthog-node')
             client = new PostHogClient(config.apiKey, {
-                host: config.host || DEFAULT_HOST,
+                host: config.host,
                 flushAt: 20,
                 flushInterval: 10_000,
             })
