@@ -9,8 +9,10 @@ See [agents.md](https://agents.md/) for the spec.
 pnpm install          # Install dependencies
 pnpm test             # Run all tests (vitest)
 pnpm typecheck        # TypeScript check (tsc --noEmit)
-pnpm lint             # Prettier check
-pnpm lint:fix         # Prettier auto-fix
+pnpm format           # oxfmt check
+pnpm format:fix       # oxfmt auto-fix
+pnpm lint             # oxlint check
+pnpm lint:fix         # oxlint auto-fix
 ```
 
 Run a single test file: `pnpm vitest run src/events.test.ts`
@@ -54,7 +56,8 @@ The plugin ID is `"posthog"` (from `openclaw.plugin.json`), not the npm package 
 
 ## Code Style
 
-- Prettier: 4-space indent, single quotes, no semicolons, 120 char width (matches posthog-js conventions)
+- oxfmt: 4-space indent, single quotes, no semicolons, 120 char width (matches posthog-js conventions)
+- oxlint: default rules
 - TypeScript: ES2022 target, Node16 module resolution, strict mode, `verbatimModuleSyntax`
 - No build step — TypeScript source is loaded directly by OpenClaw's Jiti runtime
 
