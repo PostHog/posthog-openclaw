@@ -1,5 +1,11 @@
 # @posthog/openclaw
 
+## 0.2.1
+
+### Patch Changes
+
+- 2a0a145: Fix memory leak in cleanupStaleRuns where traces, generationSpans, and traceTokens maps were never evicted for stale sessions
+
 ## 0.2.0
 
 ### Minor Changes
