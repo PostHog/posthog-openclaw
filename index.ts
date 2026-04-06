@@ -16,7 +16,7 @@ const plugin = {
             typeof raw.sessionWindowMinutes === 'number' && raw.sessionWindowMinutes > 0 ? raw.sessionWindowMinutes : 60
 
         const config: PostHogPluginConfig = {
-            apiKey: raw.apiKey as string,
+            apiKey: (raw.apiKey as string) || process.env.POSTHOG_API_KEY || '',
             host: (raw.host as string) || DEFAULT_HOST,
             privacyMode: raw.privacyMode === true,
             enabled: raw.enabled !== false,
@@ -30,7 +30,7 @@ const plugin = {
         }
 
         if (!config.apiKey) {
-            api.logger.warn('posthog: missing apiKey, plugin will not capture events')
+            api.logger.warn('posthog: missing apiKey — set config.apiKey or POSTHOG_API_KEY env var')
             return
         }
 

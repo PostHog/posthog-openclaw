@@ -6,7 +6,10 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-            "apiKey": { "type": "string", "description": "PostHog project API key" },
+            "apiKey": {
+                "type": "string",
+                "description": "PostHog project API key"
+            },
             "host": {
                 "type": "string",
                 "default": "https://us.i.posthog.com",
@@ -19,7 +22,10 @@
             },
             "traceGrouping": {
                 "type": "string",
-                "enum": ["message", "session"],
+                "enum": [
+                    "message",
+                    "session"
+                ],
                 "default": "message",
                 "description": "Trace grouping mode. 'message': one trace per runId (default). 'session': group all generations in a session into one trace, splitting on timeout."
             },
@@ -28,9 +34,11 @@
                 "default": 60,
                 "description": "Minutes of inactivity before starting a new session window. Applies to both trace grouping modes."
             },
-            "enabled": { "type": "boolean", "default": true }
-        },
-        "required": ["apiKey"]
+            "enabled": {
+                "type": "boolean",
+                "default": true
+            }
+        }
     },
     "uiHints": {
         "apiKey": {
@@ -54,5 +62,6 @@
             "label": "Session Window (minutes)",
             "help": "Minutes of inactivity before starting a new session window. Applies to both trace grouping modes."
         }
-    }
+    },
+    "schemaCacheKey": "posthog-v1"
 }
