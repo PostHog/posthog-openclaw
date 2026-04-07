@@ -16,8 +16,8 @@ const plugin = {
             typeof raw.sessionWindowMinutes === 'number' && raw.sessionWindowMinutes > 0 ? raw.sessionWindowMinutes : 60
 
         const config: PostHogPluginConfig = {
-            apiKey: (raw.apiKey as string) || process.env.POSTHOG_API_KEY || '',
-            host: (raw.host as string) || DEFAULT_HOST,
+            apiKey: typeof raw.apiKey === 'string' ? raw.apiKey : process.env.POSTHOG_API_KEY ?? '',
+            host: typeof raw.host === 'string' ? raw.host : DEFAULT_HOST,
             privacyMode: raw.privacyMode === true,
             enabled: raw.enabled !== false,
             traceGrouping,
