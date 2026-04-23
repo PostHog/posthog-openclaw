@@ -4,7 +4,7 @@ on:
     push:
         branches: [main]
         paths:
-          - '.changeset/**'
+            - '.changeset/**'
     workflow_dispatch:
 
 permissions:
