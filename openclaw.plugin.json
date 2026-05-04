@@ -8,7 +8,7 @@
         "properties": {
             "apiKey": {
                 "type": "string",
-                "description": "PostHog project API key"
+                "description": "PostHog project API key. Optional if POSTHOG_API_KEY is set."
             },
             "host": {
                 "type": "string",
@@ -22,10 +22,7 @@
             },
             "traceGrouping": {
                 "type": "string",
-                "enum": [
-                    "message",
-                    "session"
-                ],
+                "enum": ["message", "session"],
                 "default": "message",
                 "description": "Trace grouping mode. 'message': one trace per runId (default). 'session': group all generations in a session into one trace, splitting on timeout."
             },
@@ -44,7 +41,8 @@
         "apiKey": {
             "label": "PostHog API Key",
             "sensitive": true,
-            "placeholder": "phc_..."
+            "placeholder": "phc_...",
+            "help": "Optional if POSTHOG_API_KEY is set in the environment."
         },
         "host": {
             "label": "PostHog Host",
