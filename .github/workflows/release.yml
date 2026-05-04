@@ -1,11 +1,11 @@
 name: 'Release'
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.changeset/*.md'
-  workflow_dispatch:
+    push:
+        branches: [main]
+        paths:
+            - '.changeset/*.md'
+    workflow_dispatch:
 
 permissions:
     contents: read
