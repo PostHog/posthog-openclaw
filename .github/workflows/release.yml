@@ -133,6 +133,13 @@ jobs:
                 branch: main
               env:
                 GITHUB_TOKEN: ${{ steps.releaser.outputs.token }}
+
+    notify-rejected:
+        name: Notify Slack - Rejected
+        needs: [version-bump, notify-approval-needed]
+        runs-on: ubuntu-latest
+        if: always() && needs.version-bump.result == 'failure' && needs.notify-approval-needed.outputs.slack_ts != ''
+        steps:
             - name: Check for rejection
               id: check-rejection
               env:
