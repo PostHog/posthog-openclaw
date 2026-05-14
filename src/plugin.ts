@@ -6,6 +6,28 @@ import { generateSpanId, generateTraceId, parseLastAssistant } from './utils.js'
 
 const STALE_RUN_MS = 5 * 60 * 1000
 
+/**
+ * Process-wide registry so we install a single `beforeExit` listener regardless
+ * of how many plugin instances are constructed in this process. Tests construct
+ * many instances; production hosts construct one.
+ */
+const activeClientsForFlush = new Set<import('posthog-node').PostHog>()
+let processExitHandlerInstalled = false
+
+function ensureProcessExitHandler() {
+    if (processExitHandlerInstalled) return
+    processExitHandlerInstalled = true
+    process.once('beforeExit', () => {
+        const pending: Promise<unknown>[] = []
+        for (const c of activeClientsForFlush) {
+            pending.push(c.shutdown().catch(() => {}))
+        }
+        // Best-effort: Node doesn't actually wait for this beyond the next tick,
+        // but posthog-node's shutdown synchronously schedules its final flush.
+        void Promise.allSettled(pending)
+    })
+}
+
 export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPluginConfig) {
     /** In-flight LLM runs keyed by runId */
     const runs = new Map<string, RunState>()
@@ -25,7 +47,65 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
     let lastActiveSessionKey: string | undefined
 
     let client: import('posthog-node').PostHog | null = null
+    let clientInitPromise: Promise<import('posthog-node').PostHog> | null = null
     let unsubscribe: (() => void) | null = null
+
+    /**
+     * Lazily construct the PostHog client and subscribe to diagnostic events.
+     *
+     * The gateway service path calls this from `registerService.start()` for
+     * long-running processes, but short-lived CLI invocations (e.g. `openclaw
+     * agent ...`) load the plugin in a fresh Node process that never reaches
+     * `start()` — they fire lifecycle hooks then exit. Hooks therefore call
+     * `ensureClient()` themselves so capture works in both contexts.
+     */
+    async function ensureClient(): Promise<import('posthog-node').PostHog> {
+        if (client) return client
+        if (clientInitPromise) return clientInitPromise
+        clientInitPromise = (async () => {
+            const { PostHog: PostHogClient } = await import('posthog-node')
+            const instance = new PostHogClient(config.apiKey, {
+                host: config.host,
+                flushAt: 20,
+                flushInterval: 10_000,
+            })
+            client = instance
+
+            // Subscribe to diagnostic events for $ai_trace capture
+            unsubscribe = onDiagnosticEvent((raw) => {
+                if (!client) return
+                if (raw.type !== 'message.processed') return
+
+                const evt = raw as unknown as DiagnosticMessageProcessedEvent
+                const sessionKey = evt.sessionKey
+                const traceId = sessionKey ? traces.get(sessionKey) : undefined
+                if (!traceId) return
+
+                const tokenTotals = traceTokens.get(traceId)
+                const sessionId = sessionKey ? sessionWindows.get(sessionKey)?.sessionId : undefined
+                const traceEvent = buildAiTrace(traceId, evt, tokenTotals, sessionId)
+                client.capture({
+                    distinctId: traceEvent.distinctId,
+                    event: traceEvent.event,
+                    properties: traceEvent.properties,
+                })
+                // In message mode, clean up trace state after completion.
+                // In session mode, keep the trace alive for reuse across messages.
+                if (sessionKey && config.traceGrouping !== 'session') {
+                    traces.delete(sessionKey)
+                    generationSpans.delete(sessionKey)
+                    traceTokens.delete(traceId)
+                }
+            })
+
+            // Flush pending events when a short-lived CLI process exits.
+            activeClientsForFlush.add(instance)
+            ensureProcessExitHandler()
+
+            return instance
+        })()
+        return clientInitPromise
+    }
 
     function getOrCreateSessionId(sessionKey: string): string {
         const existing = sessionWindows.get(sessionKey)
@@ -109,50 +189,22 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
     }
 
     // Register the background service that manages the PostHog client lifecycle
+    // in the long-running gateway process. CLI agent invocations skip this
+    // path; they rely on `ensureClient()` being called from inside each hook.
     api.registerService({
         id: 'posthog',
         async start() {
-            const { PostHog: PostHogClient } = await import('posthog-node')
-            client = new PostHogClient(config.apiKey, {
-                host: config.host,
-                flushAt: 20,
-                flushInterval: 10_000,
-            })
-
-            // Subscribe to diagnostic events for $ai_trace capture
-            unsubscribe = onDiagnosticEvent((raw) => {
-                if (!client) return
-                if (raw.type !== 'message.processed') return
-
-                const evt = raw as unknown as DiagnosticMessageProcessedEvent
-                const sessionKey = evt.sessionKey
-                const traceId = sessionKey ? traces.get(sessionKey) : undefined
-                if (!traceId) return
-
-                const tokenTotals = traceTokens.get(traceId)
-                const sessionId = sessionKey ? sessionWindows.get(sessionKey)?.sessionId : undefined
-                const traceEvent = buildAiTrace(traceId, evt, tokenTotals, sessionId)
-                client.capture({
-                    distinctId: traceEvent.distinctId,
-                    event: traceEvent.event,
-                    properties: traceEvent.properties,
-                })
-                // In message mode, clean up trace state after completion.
-                // In session mode, keep the trace alive for reuse across messages.
-                if (sessionKey && config.traceGrouping !== 'session') {
-                    traces.delete(sessionKey)
-                    generationSpans.delete(sessionKey)
-                    traceTokens.delete(traceId)
-                }
-            })
+            await ensureClient()
         },
         async stop() {
             unsubscribe?.()
             unsubscribe = null
             if (client) {
+                activeClientsForFlush.delete(client)
                 await client.shutdown()
                 client = null
             }
+            clientInitPromise = null
             runs.clear()
             traces.clear()
             generationSpans.clear()
@@ -166,7 +218,10 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
 
     // -- Lifecycle Hooks --
 
-    api.on('llm_input', (event, ctx) => {
+    api.on('llm_input', async (event, ctx) => {
+        // Initialize the client up front so subsequent llm_output / after_tool_call
+        // hooks in the same agent run can capture without racing init.
+        await ensureClient()
         cleanupStaleRuns()
 
         const traceId = getOrCreateTraceId(ctx.sessionKey, event.runId)
@@ -204,8 +259,9 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
         })
     })
 
-    api.on('llm_output', (event, ctx) => {
-        if (!client) return
+    api.on('llm_output', async (event, ctx) => {
+        const c = await ensureClient()
+        if (!c) return
 
         const runState = runs.get(event.runId)
         if (!runState) return
@@ -241,15 +297,16 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
         }
 
         const generation = buildAiGeneration(runState, event, config.privacyMode, lastAssistant)
-        client.capture({
+        c.capture({
             distinctId: generation.distinctId,
             event: generation.event,
             properties: generation.properties,
         })
     })
 
-    api.on('after_tool_call', (event, ctx) => {
-        if (!client) return
+    api.on('after_tool_call', async (event, ctx) => {
+        const c = await ensureClient()
+        if (!c) return
 
         // Upstream after_tool_call emitters may not include sessionKey in context.
         // Fall back to the most recent sessionKey from llm_output, which is reliable
@@ -263,7 +320,7 @@ export function registerPostHogHooks(api: OpenClawPluginApi, config: PostHogPlug
         const sessionId = sessionKey ? sessionWindows.get(sessionKey)?.sessionId : undefined
 
         const span = buildAiSpan(traceId, parentSpanId, event, ctx, config.privacyMode, sessionId)
-        client.capture({
+        c.capture({
             distinctId: span.distinctId,
             event: span.event,
             properties: span.properties,
