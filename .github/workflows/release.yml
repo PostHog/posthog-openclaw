@@ -24,7 +24,7 @@ jobs:
             has-changesets: ${{ steps.check.outputs.has-changesets }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   ref: main
                   fetch-depth: 0
@@ -77,13 +77,13 @@ jobs:
 
             - name: Get GitHub App token
               id: releaser
-              uses: actions/create-github-app-token@v2
+              uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
               with:
                   app-id: ${{ secrets.GH_APP_POSTHOG_OPENCLAW_RELEASER_APP_ID }}
                   private-key: ${{ secrets.GH_APP_POSTHOG_OPENCLAW_RELEASER_PRIVATE_KEY }}
 
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   ref: main
                   fetch-depth: 0
@@ -184,7 +184,7 @@ jobs:
             id-token: write
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
               with:
                   ref: main
                   fetch-depth: 0
@@ -199,7 +199,7 @@ jobs:
 
             - name: Check package version
               id: check-package-version
-              uses: PostHog/check-package-version@v2
+              uses: PostHog/check-package-version@f540540cb12d45ec3c58d42dbf1d60070ed2d268 # v2.1.1
 
             - name: Typecheck
               if: steps.check-package-version.outputs.is-new-version == 'true'
@@ -251,7 +251,7 @@ jobs:
 
             - name: Send failure event to PostHog
               if: ${{ failure() }}
-              uses: PostHog/posthog-github-action@v0.1
+              uses: PostHog/posthog-github-action@c144f7a6fd8e39723a85b0092e580dd582d3c793 # v0.1
               with:
                   posthog-token: '${{ secrets.POSTHOG_PROJECT_API_KEY }}'
                   event: 'posthog-openclaw-github-release-workflow-failure'
