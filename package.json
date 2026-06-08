@@ -3,7 +3,8 @@
     "version": "0.2.2",
     "description": "PostHog LLM Analytics plugin for OpenClaw",
     "type": "module",
-    "main": "./index.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -23,12 +24,15 @@
         "node": ">=20.0.0"
     },
     "files": [
+        "dist",
         "index.ts",
-        "src",
+        "src/**/*.ts",
+        "!src/**/*.test.ts",
         "openclaw.plugin.json"
     ],
     "scripts": {
-        "clean": "rimraf dist",
+        "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+        "build": "pnpm clean && tsc -p tsconfig.build.json",
         "test": "vitest run",
         "test:unit": "vitest run",
         "test:watch": "vitest",
@@ -36,10 +40,12 @@
         "format:fix": "oxfmt --write .",
         "lint": "oxlint",
         "lint:fix": "oxlint --fix",
+        "pack:verify": "pnpm build && node scripts/verify-package.mjs",
+        "prepack": "pnpm build",
         "typecheck": "tsc --noEmit",
         "changeset": "changeset",
         "version": "changeset version",
-        "prepublishOnly": "pnpm format && pnpm lint && pnpm test:unit && pnpm typecheck"
+        "prepublishOnly": "pnpm format && pnpm lint && pnpm test:unit && pnpm typecheck && pnpm pack:verify"
     },
     "dependencies": {
         "posthog-node": "^5.0.0"
@@ -63,6 +69,9 @@
     "openclaw": {
         "extensions": [
             "./index.ts"
+        ],
+        "runtimeExtensions": [
+            "./dist/index.js"
         ]
     },
     "bugs": {
