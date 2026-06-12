@@ -5,9 +5,16 @@ on:
     push:
         branches: [main]
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
 jobs:
-    test:
-        name: Test
+    typecheck:
+        name: Typecheck
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -18,11 +25,50 @@ jobs:
             - name: Typecheck
               run: pnpm typecheck
 
+    format:
+        name: Format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+            - name: Setup environment
+              uses: ./.github/actions/setup
+
             - name: Format
               run: pnpm format
+
+    lint:
+        name: Lint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+            - name: Setup environment
+              uses: ./.github/actions/setup
 
             - name: Lint
               run: pnpm lint
 
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+            - name: Setup environment
+              uses: ./.github/actions/setup
+
             - name: Test
               run: pnpm test
+
+    build-pack:
+        name: Build and pack verify
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+            - name: Setup environment
+              uses: ./.github/actions/setup
+
+            - name: Build and verify package
+              run: pnpm pack:verify
