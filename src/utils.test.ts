@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 const uuidV7Mock = vi.hoisted(() => vi.fn(() => '019b2f1a-0000-7000-8000-000000000001'))
 
-vi.mock('uuid', () => ({
-    v7: uuidV7Mock,
+vi.mock('@posthog/core', () => ({
+    uuidv7: uuidV7Mock,
 }))
 
 import { generateSpanId, generateTraceId } from './utils.js'

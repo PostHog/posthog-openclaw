@@ -4,8 +4,8 @@ vi.mock('node:crypto', () => ({
     randomUUID: vi.fn(() => 'test-uuid-0001'),
 }))
 
-vi.mock('uuid', () => ({
-    v7: vi.fn(() => '019b2f1a-0000-7000-8000-000000000001'),
+vi.mock('@posthog/core', () => ({
+    uuidv7: vi.fn(() => '019b2f1a-0000-7000-8000-000000000001'),
 }))
 
 import type {

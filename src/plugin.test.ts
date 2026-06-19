@@ -32,8 +32,8 @@ vi.mock('node:crypto', async (importOriginal) => {
     }
 })
 
-vi.mock('uuid', () => ({
-    v7: uuidV7Mock,
+vi.mock('@posthog/core', () => ({
+    uuidv7: uuidV7Mock,
 }))
 
 import type { OpenClawPluginApi } from './openclaw-types.js'

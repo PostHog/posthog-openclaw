@@ -8,15 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@posthog/core':
+        specifier: 1.23.4
+        version: 1.23.4
       openclaw:
         specifier: '>=2026.2.0'
         version: 2026.3.2(@napi-rs/canvas@0.1.95)(@types/express@5.0.6)(hono@4.12.4)(node-llama-cpp@3.16.2(typescript@5.9.3))
       posthog-node:
         specifier: ^5.0.0
         version: 5.26.2
-      uuid:
-        specifier: ^13.0.2
-        version: 13.0.2
     devDependencies:
       '@changesets/cli':
         specifier: ^2.29.8
@@ -1364,6 +1364,9 @@ packages:
 
   '@posthog/core@1.23.2':
     resolution: {integrity: sha512-zTDdda9NuSHrnwSOfFMxX/pyXiycF4jtU1kTr8DL61dHhV+7LF6XF1ndRZZTuaGGbfbb/GJYkEsjEX9SXfNZeQ==}
+
+  '@posthog/core@1.23.4':
+    resolution: {integrity: sha512-gSM1gnIuw5UOBUOTz0IhCTH8jOHoFr5rzSDb5m7fn9ofLHvz3boZT1L1f+bcuk+mvzNJfrJ3ByVQGKmUQnKQ8g==}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -4046,10 +4049,6 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  uuid@13.0.2:
-    resolution: {integrity: sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==}
-    hasBin: true
-
   validate-npm-package-name@7.0.2:
     resolution: {integrity: sha512-hVDIBwsRruT73PbK7uP5ebUt+ezEtCmzZz3F59BSr2F6OVFnJ/6h8liuvdLrQ88Xmnk6/+xGGuq+pG9WwTuy3A==}
     engines: {node: ^20.17.0 || >=22.9.0}
@@ -5747,6 +5746,10 @@ snapshots:
     optional: true
 
   '@posthog/core@1.23.2':
+    dependencies:
+      cross-spawn: 7.0.6
+
+  '@posthog/core@1.23.4':
     dependencies:
       cross-spawn: 7.0.6
 
@@ -8728,8 +8731,6 @@ snapshots:
   url-join@4.0.1: {}
 
   util-deprecate@1.0.2: {}
-
-  uuid@13.0.2: {}
 
   validate-npm-package-name@7.0.2: {}
 

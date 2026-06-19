@@ -1,5 +1,5 @@
+import { uuidv7 } from '@posthog/core'
 import { randomUUID } from 'node:crypto'
-import { v7 as uuidv7 } from 'uuid'
 import type { LastAssistantInfo } from './types.js'
 
 export function generateTraceId(): string {

@@ -48,8 +48,8 @@
         "prepublishOnly": "pnpm format && pnpm lint && pnpm test:unit && pnpm typecheck && pnpm pack:verify"
     },
     "dependencies": {
-        "posthog-node": "^5.0.0",
-        "uuid": "^13.0.2"
+        "@posthog/core": "1.23.4",
+        "posthog-node": "^5.0.0"
     },
     "peerDependencies": {
         "openclaw": ">=2026.2.0"
