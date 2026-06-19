@@ -3,6 +3,15 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 const captureMock = vi.hoisted(() => vi.fn())
 const shutdownMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
 const onDiagnosticEventMock = vi.hoisted(() => vi.fn())
+const uuidV7Mock = vi.hoisted(() => {
+    let counter = 0
+    return vi.fn(() => {
+        counter++
+        const timestampPart = (0x019b2f00 + counter).toString(16).padStart(8, '0')
+        const randomPart = counter.toString().padStart(12, '0')
+        return `${timestampPart}-0000-7000-8000-${randomPart}`
+    })
+})
 
 vi.mock('posthog-node', () => ({
     PostHog: class {
@@ -22,6 +31,10 @@ vi.mock('node:crypto', async (importOriginal) => {
         randomUUID: vi.fn(() => `uuid-${Math.random().toString(36).slice(2, 8)}`),
     }
 })
+
+vi.mock('uuid', () => ({
+    v7: uuidV7Mock,
+}))
 
 import type { OpenClawPluginApi } from './openclaw-types.js'
 import { registerPostHogHooks } from './plugin.js'
@@ -71,6 +84,7 @@ describe('registerPostHogHooks', () => {
         captureMock.mockClear()
         shutdownMock.mockClear()
         onDiagnosticEventMock.mockReset()
+        uuidV7Mock.mockClear()
         onDiagnosticEventMock.mockReturnValue(vi.fn()) // unsubscribe fn
     })
 

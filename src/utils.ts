@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto'
+import { v7 as uuidv7 } from 'uuid'
 import type { LastAssistantInfo } from './types.js'
 
 export function generateTraceId(): string {
-    return randomUUID()
+    return uuidv7()
 }
 
 export function generateSpanId(): string {
-    return randomUUID()
+    return uuidv7()
 }
 
 export function parseLastAssistant(lastAssistant: unknown): LastAssistantInfo {
