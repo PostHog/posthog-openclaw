@@ -4,6 +4,10 @@ vi.mock('node:crypto', () => ({
     randomUUID: vi.fn(() => 'test-uuid-0001'),
 }))
 
+vi.mock('@posthog/core', () => ({
+    uuidv7: vi.fn(() => '019b2f1a-0000-7000-8000-000000000001'),
+}))
+
 import type {
     DiagnosticMessageProcessedEvent,
     PluginHookAfterToolCallEvent,
@@ -367,7 +371,7 @@ describe('buildAiSpan', () => {
         expect(result.event).toBe('$ai_span')
         expect(result.distinctId).toBe('telegram:123')
         expect(result.properties.$ai_trace_id).toBe('trace-1')
-        expect(result.properties.$ai_span_id).toBe('test-uuid-0001')
+        expect(result.properties.$ai_span_id).toBe('019b2f1a-0000-7000-8000-000000000001')
         expect(result.properties.$ai_parent_id).toBe('parent-span-1')
         expect(result.properties.$ai_span_name).toBe('web_search')
         expect(result.properties.$ai_latency).toBeCloseTo(0.32, 2)
