@@ -1,6 +1,6 @@
 {
     "name": "@posthog/openclaw",
-    "version": "0.2.3",
+    "version": "0.2.2",
     "description": "PostHog LLM Analytics plugin for OpenClaw",
     "type": "module",
     "main": "./dist/index.js",
@@ -37,6 +37,7 @@
         "test:unit": "vitest run",
         "test:watch": "vitest",
         "format": "oxfmt --check .",
+        "format:publish": "oxfmt --check . '!CHANGELOG.md'",
         "format:fix": "oxfmt --write .",
         "lint": "oxlint",
         "lint:fix": "oxlint --fix",
@@ -45,7 +46,7 @@
         "typecheck": "tsc --noEmit",
         "changeset": "changeset",
         "version": "changeset version",
-        "prepublishOnly": "pnpm format && pnpm lint && pnpm test:unit && pnpm typecheck && pnpm pack:verify"
+        "prepublishOnly": "pnpm format:publish && pnpm lint && pnpm test:unit && pnpm typecheck && pnpm pack:verify"
     },
     "dependencies": {
         "posthog-node": "^5.0.0"

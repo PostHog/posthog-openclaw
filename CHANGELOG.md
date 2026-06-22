@@ -1,11 +1,5 @@
 # @posthog/openclaw
 
-## 0.2.3
-
-### Patch Changes
-
-- 4356478: Ship compiled JavaScript runtime output and OpenClaw runtime metadata in the published npm package.
-
 ## 0.2.2
 
 ### Patch Changes
