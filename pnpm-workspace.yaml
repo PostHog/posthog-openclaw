@@ -1,4 +1,13 @@
 packages:
     - '.'
 
+allowBuilds:
+    '@discordjs/opus': true
+    '@whiskeysockets/baileys': true
+    esbuild: true
+    koffi: true
+    node-llama-cpp: true
+    protobufjs: true
+    sharp: true
+
 minimumReleaseAge: 10080
