@@ -10,26 +10,12 @@ inputs:
 runs:
     using: composite
     steps:
-        - name: Setup pnpm
-          uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
-
-        - name: Setup Node.js
-          uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        - name: Setup pnpm and Node.js
+          uses: pnpm/setup@f7d0e5f4b1b3089d2799ef9722859e7ba314c4c8 # v1
           with:
-              node-version-file: .nvmrc
-              cache: 'pnpm'
-
-        - name: Cache dependencies
-          id: pnpm-cache
-          uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-          with:
-              path: |
-                  **/node_modules
-                  .pnpm-store
-              key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/package.json', '!node_modules/**') }}
-              restore-keys: |
-                  ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
-                  ${{ runner.os }}-pnpm-
+              runtime: node@24
+              cache: true
+              install: false
 
         - name: Install dependencies
           if: inputs.install == 'true'
