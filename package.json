@@ -79,7 +79,7 @@
         "url": "https://github.com/PostHog/posthog-openclaw/issues"
     },
     "homepage": "https://github.com/PostHog/posthog-openclaw#readme",
-    "packageManager": "pnpm@10.29.3",
+    "packageManager": "pnpm@11.7.0",
     "publishConfig": {
         "registry": "https://registry.npmjs.org/"
     }
