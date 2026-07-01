@@ -11,64 +11,238 @@ concurrency:
 
 permissions:
     contents: read
+    pull-requests: read
 
 jobs:
+    skip_heavy:
+        name: Classify changes
+        runs-on: ubuntu-latest
+        outputs:
+            skip: ${{ steps.classify.outputs.skip }}
+        steps:
+            - name: Detect non-impacting changes
+              id: classify
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  GH_TOKEN: ${{ github.token }}
+                  PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+                  REPOSITORY: ${{ github.repository }}
+                  API_URL: ${{ github.api_url }}
+              run: |
+                  set -euo pipefail
+
+                  skip=false
+
+                  finish() {
+                      echo "skip=${skip}" >> "$GITHUB_OUTPUT"
+                  }
+                  trap finish EXIT
+
+                  if [ "$EVENT_NAME" != "pull_request" ]; then
+                      echo "Push or non-PR event detected; running full CI."
+                      exit 0
+                  fi
+
+                  if [ -z "$PR_NUMBER" ]; then
+                      echo "Pull request number unavailable; running full CI."
+                      exit 0
+                  fi
+
+                  changed_files="$(mktemp)"
+                  page=1
+
+                  while :; do
+                      payload="$(mktemp)"
+                      if ! status="$(curl -sS -L \
+                          -w '%{http_code}' \
+                          -o "$payload" \
+                          -H "Accept: application/vnd.github+json" \
+                          -H "Authorization: Bearer ${GH_TOKEN}" \
+                          -H "X-GitHub-Api-Version: 2022-11-28" \
+                          "${API_URL}/repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100&page=${page}")"; then
+                          echo "Could not list pull request files; running full CI."
+                          exit 0
+                      fi
+
+                      if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+                          echo "Could not list pull request files (HTTP ${status}); running full CI."
+                          exit 0
+                      fi
+
+                      count="$(python3 - "$payload" <<'PY'
+                  import json
+                  import sys
+
+                  with open(sys.argv[1], encoding='utf-8') as handle:
+                      data = json.load(handle)
+
+                  if not isinstance(data, list):
+                      raise SystemExit('unexpected pull request files response')
+
+                  print(len(data))
+                  PY
+                  )" || {
+                          echo "Could not parse pull request files; running full CI."
+                          exit 0
+                      }
+
+                      python3 - "$payload" <<'PY' >> "$changed_files" || {
+                  import json
+                  import sys
+
+                  with open(sys.argv[1], encoding='utf-8') as handle:
+                      data = json.load(handle)
+
+                  for item in data:
+                      filename = item.get('filename')
+                      if filename:
+                          print(filename)
+                      previous_filename = item.get('previous_filename')
+                      if previous_filename:
+                          print(previous_filename)
+                  PY
+                          echo "Could not read pull request file names; running full CI."
+                          exit 0
+                      }
+
+                      if [ "$count" -lt 100 ]; then
+                          break
+                      fi
+
+                      page=$((page + 1))
+                  done
+
+                  if [ ! -s "$changed_files" ]; then
+                      echo "No changed files found; running full CI."
+                      exit 0
+                  fi
+
+                  is_non_impacting() {
+                      case "$1" in
+                          *.md|docs/*|.github/ISSUE_TEMPLATE/*|.github/PULL_REQUEST_TEMPLATE/*|.github/CODEOWNERS|CODEOWNERS|.github/dependabot.yml)
+                              return 0
+                              ;;
+                          .github/workflows/release.yml|.github/workflows/release.yaml|.github/workflows/publish.yml|.github/workflows/publish.yaml|.github/workflows/stale.yml|.github/workflows/stale.yaml|.github/workflows/lint-pr.yml|.github/workflows/lint-pr.yaml|.github/workflows/call-flags-project-board.yml|.github/workflows/call-flags-project-board.yaml|.github/workflows/changeset-hygiene.yml|.github/workflows/changeset-hygiene.yaml|.github/workflows/dependabot-changeset.yml|.github/workflows/dependabot-changeset.yaml|.github/workflows/validate-versioning.yml|.github/workflows/validate-versioning.yaml|.github/workflows/new-pr.yml|.github/workflows/new-pr.yaml|.github/workflows/generated-files-notice.yml|.github/workflows/generated-files-notice.yaml|.github/workflows/posthog-upgrade.yml|.github/workflows/posthog-upgrade.yaml|.github/workflows/posthog-watcher-*.yml|.github/workflows/posthog-watcher-*.yaml)
+                              return 0
+                              ;;
+                      esac
+
+                      return 1
+                  }
+
+                  while IFS= read -r file; do
+                      [ -n "$file" ] || continue
+
+                      if ! is_non_impacting "$file"; then
+                          echo "Impacting or unknown change detected: ${file}; running full CI."
+                          exit 0
+                      fi
+                  done < "$changed_files"
+
+                  skip=true
+                  echo "Only non-impacting docs/release metadata changes detected; skipping heavy CI steps."
+
     typecheck:
         name: Typecheck
+        needs: skip_heavy
+        if: ${{ always() }}
         runs-on: ubuntu-latest
         steps:
+            - name: Skip Typecheck
+              if: ${{ needs.skip_heavy.result == 'success' && needs.skip_heavy.outputs.skip == 'true' }}
+              run: echo "No impacting changes detected; Typecheck is not required."
+
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
 
             - name: Setup environment
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               uses: ./.github/actions/setup
 
             - name: Typecheck
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               run: pnpm typecheck
 
     format:
         name: Format
+        needs: skip_heavy
+        if: ${{ always() }}
         runs-on: ubuntu-latest
         steps:
+            - name: Skip Format
+              if: ${{ needs.skip_heavy.result == 'success' && needs.skip_heavy.outputs.skip == 'true' }}
+              run: echo "No impacting changes detected; Format is not required."
+
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
 
             - name: Setup environment
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               uses: ./.github/actions/setup
 
             - name: Format
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               run: pnpm format
 
     lint:
         name: Lint
+        needs: skip_heavy
+        if: ${{ always() }}
         runs-on: ubuntu-latest
         steps:
+            - name: Skip Lint
+              if: ${{ needs.skip_heavy.result == 'success' && needs.skip_heavy.outputs.skip == 'true' }}
+              run: echo "No impacting changes detected; Lint is not required."
+
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
 
             - name: Setup environment
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               uses: ./.github/actions/setup
 
             - name: Lint
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               run: pnpm lint
 
     test:
         name: Test
+        needs: skip_heavy
+        if: ${{ always() }}
         runs-on: ubuntu-latest
         steps:
+            - name: Skip Test
+              if: ${{ needs.skip_heavy.result == 'success' && needs.skip_heavy.outputs.skip == 'true' }}
+              run: echo "No impacting changes detected; Test is not required."
+
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
 
             - name: Setup environment
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               uses: ./.github/actions/setup
 
             - name: Test
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               run: pnpm test
 
     build-pack:
         name: Build and pack verify
+        needs: skip_heavy
+        if: ${{ always() }}
         runs-on: ubuntu-latest
         steps:
+            - name: Skip Build and pack verify
+              if: ${{ needs.skip_heavy.result == 'success' && needs.skip_heavy.outputs.skip == 'true' }}
+              run: echo "No impacting changes detected; Build and pack verify is not required."
+
             - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
 
             - name: Setup environment
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               uses: ./.github/actions/setup
 
             - name: Build and verify package
+              if: ${{ needs.skip_heavy.result != 'success' || needs.skip_heavy.outputs.skip != 'true' }}
               run: pnpm pack:verify
