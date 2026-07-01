@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@posthog/core':
+        specifier: 1.23.4
+        version: 1.23.4
       openclaw:
         specifier: '>=2026.2.0'
         version: 2026.3.2(@napi-rs/canvas@0.1.95)(@types/express@5.0.6)(hono@4.12.4)(node-llama-cpp@3.16.2(typescript@5.9.3))
@@ -1361,6 +1364,9 @@ packages:
 
   '@posthog/core@1.23.2':
     resolution: {integrity: sha512-zTDdda9NuSHrnwSOfFMxX/pyXiycF4jtU1kTr8DL61dHhV+7LF6XF1ndRZZTuaGGbfbb/GJYkEsjEX9SXfNZeQ==}
+
+  '@posthog/core@1.23.4':
+    resolution: {integrity: sha512-gSM1gnIuw5UOBUOTz0IhCTH8jOHoFr5rzSDb5m7fn9ofLHvz3boZT1L1f+bcuk+mvzNJfrJ3ByVQGKmUQnKQ8g==}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -5740,6 +5746,10 @@ snapshots:
     optional: true
 
   '@posthog/core@1.23.2':
+    dependencies:
+      cross-spawn: 7.0.6
+
+  '@posthog/core@1.23.4':
     dependencies:
       cross-spawn: 7.0.6
 

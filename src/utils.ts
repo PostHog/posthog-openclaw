@@ -1,12 +1,13 @@
+import { uuidv7 } from '@posthog/core'
 import { randomUUID } from 'node:crypto'
 import type { LastAssistantInfo } from './types.js'
 
 export function generateTraceId(): string {
-    return randomUUID()
+    return uuidv7()
 }
 
 export function generateSpanId(): string {
-    return randomUUID()
+    return uuidv7()
 }
 
 export function parseLastAssistant(lastAssistant: unknown): LastAssistantInfo {
