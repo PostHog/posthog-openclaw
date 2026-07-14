@@ -1,6 +1,6 @@
 {
     "name": "@posthog/openclaw",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "description": "PostHog LLM Analytics plugin for OpenClaw",
     "type": "module",
     "main": "./dist/index.js",
