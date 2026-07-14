@@ -44,12 +44,14 @@ Add to your `openclaw.json` (or `openclaw.yaml`):
 
 | Option                 | Type                       | Default                    | Description                                                                                                           |
 | ---------------------- | -------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `apiKey`               | `string`                   | _(required)_               | Your PostHog project API key                                                                                          |
-| `host`                 | `string`                   | `https://us.i.posthog.com` | PostHog instance URL                                                                                                  |
+| `apiKey`               | `string`                   | _(required\*)_             | Your PostHog project API key. Can also be provided via the `POSTHOG_API_KEY` environment variable                     |
+| `host`                 | `string`                   | `https://us.i.posthog.com` | PostHog instance URL. Can also be provided via the `POSTHOG_HOST` environment variable                                |
 | `privacyMode`          | `boolean`                  | `false`                    | When enabled, LLM input/output content is not sent to PostHog                                                         |
 | `traceGrouping`        | `"message"` \| `"session"` | `"message"`                | Trace grouping mode. `"message"`: one trace per runId. `"session"`: group all generations in a session into one trace |
 | `sessionWindowMinutes` | `number`                   | `60`                       | Minutes of inactivity before starting a new session window. Applies to both trace grouping modes                      |
 | `enabled`              | `boolean`                  | `true`                     | Enable or disable the plugin                                                                                          |
+
+> \* Required unless provided via the `POSTHOG_API_KEY` environment variable. The config value takes precedence when both are set.
 
 > **Note:** `diagnostics.enabled` must be `true` in your OpenClaw config for trace-level events (`$ai_trace`) to be captured.
 

@@ -13,7 +13,7 @@
             "host": {
                 "type": "string",
                 "default": "https://us.i.posthog.com",
-                "description": "PostHog instance URL"
+                "description": "PostHog instance URL. Optional if POSTHOG_HOST is set; otherwise defaults to https://us.i.posthog.com."
             },
             "privacyMode": {
                 "type": "boolean",
@@ -43,7 +43,7 @@
         },
         "host": {
             "label": "PostHog Host",
-            "help": "Your PostHog instance URL"
+            "help": "Your PostHog instance URL. Optional if POSTHOG_HOST is set in the environment."
         },
         "privacyMode": {
             "label": "Privacy Mode",

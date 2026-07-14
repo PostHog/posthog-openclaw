@@ -4,8 +4,12 @@ import type { PostHogPluginConfig } from './src/types.js'
 
 const DEFAULT_HOST = 'https://us.i.posthog.com'
 
-function normalize(value: unknown): string | undefined {
-    return typeof value === 'string' && value.trim().length > 0 ? value : undefined
+function normalizeString(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined
+    }
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : undefined
 }
 
 const plugin = {
@@ -20,8 +24,8 @@ const plugin = {
             typeof raw.sessionWindowMinutes === 'number' && raw.sessionWindowMinutes > 0 ? raw.sessionWindowMinutes : 60
 
         const config: PostHogPluginConfig = {
-            apiKey: normalize(raw.apiKey) ?? normalize(process.env.POSTHOG_API_KEY) ?? '',
-            host: normalize(raw.host) ?? DEFAULT_HOST,
+            apiKey: normalizeString(raw.apiKey) ?? normalizeString(process.env.POSTHOG_API_KEY) ?? '',
+            host: normalizeString(raw.host) ?? normalizeString(process.env.POSTHOG_HOST) ?? DEFAULT_HOST,
             privacyMode: raw.privacyMode === true,
             enabled: raw.enabled !== false,
             traceGrouping,

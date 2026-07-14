@@ -88,3 +88,92 @@ describe('posthog plugin register', () => {
         )
     })
 })
+
+describe('posthog plugin host resolution', () => {
+    const originalHost = process.env.POSTHOG_HOST
+
+    beforeEach(() => {
+        registerPostHogHooksMock.mockReset()
+        delete process.env.POSTHOG_HOST
+    })
+
+    afterEach(() => {
+        if (originalHost === undefined) {
+            delete process.env.POSTHOG_HOST
+        } else {
+            process.env.POSTHOG_HOST = originalHost
+        }
+    })
+
+    test.each([
+        ['missing', { apiKey: 'phc_test' }],
+        ['empty', { apiKey: 'phc_test', host: '' }],
+        ['whitespace', { apiKey: 'phc_test', host: '   ' }],
+    ])('uses POSTHOG_HOST env fallback when config host is %s', (_case, pluginConfig) => {
+        process.env.POSTHOG_HOST = 'https://eu.i.posthog.com'
+        const api = createMockApi(pluginConfig)
+
+        plugin.register(api)
+
+        expect(registerPostHogHooksMock).toHaveBeenCalledWith(
+            api,
+            expect.objectContaining({
+                host: 'https://eu.i.posthog.com',
+            })
+        )
+    })
+
+    test('prefers a nonblank configured host over POSTHOG_HOST', () => {
+        process.env.POSTHOG_HOST = 'https://eu.i.posthog.com'
+        const api = createMockApi({ apiKey: 'phc_test', host: 'https://self-hosted.example.com' })
+
+        plugin.register(api)
+
+        expect(registerPostHogHooksMock).toHaveBeenCalledWith(
+            api,
+            expect.objectContaining({
+                host: 'https://self-hosted.example.com',
+            })
+        )
+    })
+
+    test('trims surrounding whitespace from a configured host', () => {
+        const api = createMockApi({ apiKey: 'phc_test', host: '  https://self-hosted.example.com  ' })
+
+        plugin.register(api)
+
+        expect(registerPostHogHooksMock).toHaveBeenCalledWith(
+            api,
+            expect.objectContaining({
+                host: 'https://self-hosted.example.com',
+            })
+        )
+    })
+
+    test('trims surrounding whitespace from POSTHOG_HOST', () => {
+        process.env.POSTHOG_HOST = '  https://eu.i.posthog.com  '
+        const api = createMockApi({ apiKey: 'phc_test' })
+
+        plugin.register(api)
+
+        expect(registerPostHogHooksMock).toHaveBeenCalledWith(
+            api,
+            expect.objectContaining({
+                host: 'https://eu.i.posthog.com',
+            })
+        )
+    })
+
+    test('falls back to the default host when neither config nor POSTHOG_HOST is set', () => {
+        const api = createMockApi({ apiKey: 'phc_test' })
+
+        plugin.register(api)
+
+        expect(registerPostHogHooksMock).toHaveBeenCalledWith(
+            api,
+            expect.objectContaining({
+                host: 'https://us.i.posthog.com',
+            })
+        )
+    })
+})
