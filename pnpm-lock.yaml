@@ -13,7 +13,7 @@ importers:
         version: 2026.3.2(@napi-rs/canvas@0.1.95)(@types/express@5.0.6)(hono@4.12.4)(node-llama-cpp@3.16.2(typescript@5.9.3))
       posthog-node:
         specifier: ^5.0.0
-        version: 5.47.2
+        version: 5.47.3
     devDependencies:
       '@changesets/cli':
         specifier: ^2.29.8
@@ -3512,8 +3512,8 @@ packages:
     resolution: {integrity: sha512-OW/rX8O/jXnm82Ey1k44pObPtdblfiuWnrd8X7GJ7emImCOstunGbXUpp7HdBrFQX6rJzn3sPT397Wp5aCwCHg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  posthog-node@5.47.2:
-    resolution: {integrity: sha512-u62sg9bAE+GO8NUzBnE0+PMgelTOoCfvFwcMvUK/zxvZLO8A25j3zbjXxJo2iBC3Cs6zzuJXENsFtsf58pk+tg==}
+  posthog-node@5.47.3:
+    resolution: {integrity: sha512-mhKaZOGLgD5aKKTj6xNRE2K9vRJnRIj4FNZeguDNnCR0k8RKJh71KO78+UqVdOONBsMzoqb01AD/B+TtsK7YSw==}
     engines: {node: ^20.20.0 || >=22.22.0}
     peerDependencies:
       rxjs: ^7.0.0
@@ -8152,7 +8152,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  posthog-node@5.47.2:
+  posthog-node@5.47.3:
     dependencies:
       '@posthog/core': 1.46.1
 
