@@ -9,7 +9,7 @@ updates:
       groups:
           npm-dependencies:
               patterns:
-                  - "*"
+                  - '*'
     - package-ecosystem: github-actions
       directory: /
       schedule:
@@ -19,4 +19,4 @@ updates:
       groups:
           github-actions:
               patterns:
-                  - "*"
+                  - '*'
