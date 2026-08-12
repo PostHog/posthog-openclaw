@@ -61,11 +61,11 @@
     },
     "devDependencies": {
         "@changesets/cli": "^2.29.8",
-        "@types/node": "^25.3.2",
-        "oxfmt": "^0.40.0",
+        "@types/node": "^26.1.2",
+        "oxfmt": "^0.62.0",
         "oxlint": "^1.55.0",
-        "typescript": "^5.8.0",
-        "vitest": "^3.0.0"
+        "typescript": "^7.0.2",
+        "vitest": "^4.1.10"
     },
     "openclaw": {
         "extensions": [
