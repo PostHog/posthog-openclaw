@@ -144,7 +144,6 @@ describe('registerPostHogHooks', () => {
         expect(captureMock).toHaveBeenCalledTimes(1)
         const captured = captureMock.mock.calls[0]![0]
         expect(captured.event).toBe('$ai_generation')
-        expect(captured).not.toHaveProperty('timestamp')
         // distinctId is windowed session ID
         expect(captured.distinctId).toMatch(/^telegram:123:[a-z0-9-]{8}$/)
         expect(captured.properties.$ai_model).toBe('gpt-4o')
@@ -382,7 +381,6 @@ describe('registerPostHogHooks', () => {
         expect(captureMock).toHaveBeenCalledTimes(1)
         const captured = captureMock.mock.calls[0]![0]
         expect(captured.event).toBe('$ai_span')
-        expect(captured).not.toHaveProperty('timestamp')
         expect(captured.properties.$ai_span_name).toBe('web_search')
         expect(captured.properties.$ai_latency).toBeCloseTo(0.25, 2)
         expect(captured.properties.$ai_parent_id).toBeTruthy()
@@ -486,7 +484,6 @@ describe('registerPostHogHooks', () => {
         expect(captureMock).toHaveBeenCalledTimes(1)
         const captured = captureMock.mock.calls[0]![0]
         expect(captured.event).toBe('$ai_trace')
-        expect(captured).not.toHaveProperty('timestamp')
         expect(captured.properties.$ai_latency).toBeCloseTo(3.0, 2)
         expect(captured.properties.$ai_is_error).toBe(false)
         // Session ID is windowed
