@@ -1,70 +1,34 @@
 # AGENTS.md
 
-This file provides guidance to AI coding agents working with this repository.
-See [agents.md](https://agents.md/) for the spec.
+This OpenClaw plugin (`@posthog/openclaw`) sends LLM activity to PostHog as `$ai_*` events. See [README.md](README.md) for configuration and local testing; [package.json](package.json), [.oxfmtrc.json](.oxfmtrc.json), and [tsconfig.json](tsconfig.json) own commands and tooling settings.
 
-## Commands
+## Runtime safeguards
+
+- Plugin/config identity is `posthog`, not the npm package name: keep [index.ts](index.ts), [openclaw.plugin.json](openclaw.plugin.json), and the `openclaw.json` config entry aligned.
+- Preserve both loading paths in `package.json`: `openclaw.extensions` uses `./index.ts` for source/Jiti loading; `openclaw.runtimeExtensions` and `main` use `./dist/index.js`, with declarations at `./dist/index.d.ts`.
+- Host types are inlined in [src/openclaw-types.ts](src/openclaw-types.ts) to avoid a build-time OpenClaw dependency. [src/openclaw-plugin-sdk.d.ts](src/openclaw-plugin-sdk.d.ts) types the runtime `onDiagnosticEvent` import from `openclaw/plugin-sdk`; retain host resolution.
+- Preserve privacy-mode redaction of prompts/messages and tool inputs/results in [src/events.ts](src/events.ts) and [src/utils.ts](src/utils.ts), while retaining usage/latency/model/error metadata.
+- In [src/plugin.ts](src/plugin.ts), correlate input/output by `runId`; keep unique generation/tool span IDs and tool parenting, including tools firing before output. Preserve windowed session IDs, inactivity rotation, default message traces per run versus session-window grouping, and stale-state cleanup.
+- Preserve gateway service start/stop and hook-driven initialization for short-lived CLI processes that skip service start. Keep shared initialization, best-effort exit flushing, shutdown/unsubscription, and state cleanup.
+
+## Validation
+
+Run relevant checks from the repository root; scripts are defined in `package.json`.
 
 ```bash
-pnpm install          # Install dependencies
-pnpm test             # Run all tests (vitest)
-pnpm typecheck        # TypeScript check (tsc --noEmit)
-pnpm format           # oxfmt check
-pnpm format:fix       # oxfmt auto-fix
-pnpm lint             # oxlint check
-pnpm lint:fix         # oxlint auto-fix
+pnpm vitest run src/events.test.ts  # Focused example
+pnpm test                          # Full Vitest suite
+pnpm typecheck
+pnpm lint
+pnpm format                        # Check only
+pnpm build                         # JavaScript and declarations in dist/
+pnpm pack:verify                   # Build and verify packed runtime output
 ```
 
-Run a single test file: `pnpm vitest run src/events.test.ts`
+Require `pnpm pack:verify` for build, entrypoint, or package changes. Markdown-only edits need path/link and diff checks, not SDK builds.
 
-## Architecture
+## Reviews and releases
 
-This is an OpenClaw plugin (`@posthog/openclaw`) that captures LLM activity and sends structured `$ai_*` events to PostHog.
+When reviewing or fixing someone else's PR, do not ask for or open an issue. Note an external contributor's public API change when it has neither an agreed issue nor an API-defining published spec.
 
-### Entry Point & Plugin Lifecycle
-
-`index.ts` exports the plugin object with `id: "posthog"` and a `register(api)` method. OpenClaw's Jiti-based plugin loader calls `register()` at startup, passing the `OpenClawPluginApi` which provides hooks, config, logging, and service registration.
-
-### Core Flow
-
-1. **`plugin.ts`** — `registerPostHogHooks()` wires three OpenClaw hooks and one diagnostic event listener:
-    - `llm_input`: Records run state (model, provider, messages, spanId) in an in-memory `Map<runId, RunState>`. Creates/reuses trace and session IDs.
-    - `llm_output`: Correlates with `llm_input` by `runId`, calls `buildAiGeneration()`, captures `$ai_generation` via PostHog client.
-    - `after_tool_call`: Calls `buildAiSpan()`, captures `$ai_span` parented to the generation span.
-    - `message.processed` (diagnostic): Calls `buildAiTrace()`, captures `$ai_trace` for the completed message cycle.
-
-2. **`events.ts`** — Pure builder functions (`buildAiGeneration`, `buildAiSpan`, `buildAiTrace`) that construct PostHog event payloads. No side effects; easy to unit test.
-
-3. **`utils.ts`** — Message format conversion (Anthropic → OpenAI chat format), privacy redaction, ID generation.
-
-4. **`types.ts`** — `PostHogPluginConfig`, `RunState`, `LastAssistantInfo`.
-
-### Type Strategy
-
-Types from `openclaw/plugin-sdk` are **inlined** in `src/openclaw-types.ts` to avoid a build-time dependency on openclaw. An ambient module declaration (`src/openclaw-plugin-sdk.d.ts`) provides type info for the runtime `onDiagnosticEvent` import that Jiti resolves at runtime.
-
-### Trace/Session Model
-
-- **Session ID**: Windowed — `"{sessionKey}:{windowId}"`, rotates after `sessionWindowMinutes` of inactivity.
-- **Trace ID**: In `"message"` mode (default), one trace per `runId`. In `"session"` mode, one trace per session window.
-- **Span ID**: Unique per generation or tool call within a trace.
-- Stale runs are cleaned up after 5 minutes.
-
-### Plugin Identity
-
-The plugin ID is `"posthog"` (from `openclaw.plugin.json`), not the npm package name. The config entry key in `openclaw.json` must be `"posthog"`.
-
-## Code Style
-
-- oxfmt: 4-space indent, single quotes, no semicolons, 120 char width (matches posthog-js conventions)
-- oxlint: default rules
-- TypeScript: ES2022 target, Node16 module resolution, strict mode, `verbatimModuleSyntax`
-- No build step — TypeScript source is loaded directly by OpenClaw's Jiti runtime
-
-## Release Process
-
-Uses changesets. To release:
-
-1. Add a changeset: `pnpm changeset`
-2. Create a PR with the `release` label
-3. Merge → CI runs `changeset version` → publishes to npm via OIDC provenance → creates git tag and GitHub Release
+Add a Changeset (`pnpm changeset`) for releasable changes. Releases with pending changesets require maintainer approval through the protected GitHub `Release` environment; no release label is required. See [RELEASING.md](RELEASING.md) for mechanics.
