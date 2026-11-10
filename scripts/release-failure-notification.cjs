@@ -4,6 +4,7 @@ const { join } = require('node:path')
 
 const unsuccessful = new Set(['failure', 'cancelled', 'timed_out', 'action_required', 'startup_failure', 'stale'])
 const npmPublishJobs = ['Publish to NPM']
+const npmPublishStep = 'Publish to NPM'
 
 const isJob = (job, name) => job.name === name || job.name.startsWith(`${name} (`)
 
@@ -75,7 +76,12 @@ module.exports = async function releaseFailureNotification({ github, context, ch
 
     const npmPublished = npmPublishJobs.every((name) => {
         const cells = jobs.filter((job) => isJob(job, name))
-        return cells.length > 0 && cells.every((job) => job.conclusion === 'success')
+        return (
+            cells.length > 0 &&
+            cells.every((job) =>
+                job.steps?.some((step) => step.name === npmPublishStep && step.conclusion === 'success')
+            )
+        )
     })
     const releasedNotification = jobs.find((job) => job.name === 'Notify Slack - Released')
     const problems = failedJobs.map((job) => `• <${job.html_url}|${job.name}>: ${job.conclusion}`)
